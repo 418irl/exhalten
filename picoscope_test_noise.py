@@ -123,7 +123,7 @@ def find_timebase(target_fs, max_samples):
 
         if status == 0:
 
-            fs = 1e9 / interval.value
+            fs = 1e9 / interval.value #1ns/interval value
 
             if fs <= target_fs:
                 print(f"Timebase = {tb}")
@@ -144,6 +144,7 @@ def get_timebase(timebase, max_samples):
     returnedMaxSamples = ctypes.c_int32()
     oversample = ctypes.c_int16(1)
 
+    #If I use this timebase, what sampling interval do I get?
     status["getTimebase2"] = ps.ps4000GetTimebase2(
         chandle,
         timebase,
@@ -285,6 +286,7 @@ def compute_psd(voltage, fs):
         window='hann',
         nperseg=nperseg,
         scaling='density'
+        detrend='constant'
     )
     psd_db = 10*np.log10(np.maximum(psd,1e-30))
 
@@ -293,31 +295,14 @@ def compute_psd(voltage, fs):
     peak = np.argmax(psd)
     
     noise_floor_db = np.median(psd_db)
-    '''
-    signal_bins = slice(peak-2, peak+3)
-    signal_power = np.sum(psd[signal_bins]) * df
-    mask = np.ones(len(psd), dtype=bool)
-    mask[peak-2:peak+3] = False
-
-    noise_power = np.sum(psd[mask]) * df'''
 
     band = freq <= 100000      # 100 kHz
-
     noise_power = np.sum(psd[band]) * df
 
     Vrms = np.sqrt(noise_power)
-    
-    #signal_power = np.sum(psd[peak-2:peak+3]) * df
-    #noise_power = np.sum(psd)*df
-
-    #SNR = 10*np.log10(signal_power/noise_power)
-    #Vrms = np.sqrt(np.sum(psd) * df)
-
 
     print("noise floor:", noise_floor_db)
     print("noise power:", noise_power)
-    #print("signal power:", signal_power)
-    #print("SNR:", SNR)
     #print("PSD:", psd)
     print("Vrms:", Vrms)
     print("df =", df)
@@ -358,19 +343,6 @@ def plot_results(time_ms, voltage,
 
     plt.tight_layout()
     plt.show()
-
-
-#def plot_waveform(time_ms, voltage, actual_fs, duration):
-    '''
-    plt.figure(figsize=(10,5))
-    plt.plot(time_ms, voltage)
-
-    plt.xlabel("Time (ms)")
-    plt.ylabel("Voltage (mV)")
-    plt.title(f'PicoScope 4262 - Channel A @ {actual_fs/1e6:.2f} MHz, Duration: {duration*1000} ms')
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()'''
 
 def close_scope():
 
@@ -440,12 +412,9 @@ def main():
     )
 
 
-    #plot_waveform(time_ms, voltage, actual_fs, duration)
-
     close_scope()
 
     print(f"Actual Sampling Rate = {actual_fs/1e6:.2f} MHz")
-
 
 if __name__ == "__main__":
     main()  
