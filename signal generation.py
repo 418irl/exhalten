@@ -11,7 +11,6 @@ time = np.linspace(0, 2, fs)
 
 #sine wave
 sin0 = amp*np.sin(2*np.pi*freq*time)
-
 #square wave with duty cycle 30% and 50%
 sq0 = amp * np.sign(sin0)
 #sq0 = amp*sg.square(2*np.pi*freq*time, duty=0.3)
