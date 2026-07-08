@@ -287,7 +287,7 @@ def compute_psd(voltage, fs):
         nperseg=nperseg,
         scaling='density'
         detrend='constant'
-        )
+    )
     psd_db = 10*np.log10(np.maximum(psd,1e-30))
 
     print("***********************************************")
@@ -295,14 +295,22 @@ def compute_psd(voltage, fs):
     peak = np.argmax(psd)
     
     noise_floor_db = np.median(psd_db)
-
+    
     band = freq <= 100000      # 100 kHz
     noise_power = np.sum(psd[band]) * df
-
     Vrms = np.sqrt(noise_power)
+    
+    #signal_power = np.sum(psd[peak-2:peak+3]) * df
+    #noise_power = np.sum(psd)*df
+
+    SNR = 10*np.log10(signal_power/noise_power)
+    #Vrms = np.sqrt(np.sum(psd) * df)
+
 
     print("noise floor:", noise_floor_db)
     print("noise power:", noise_power)
+    #print("signal power:", signal_power)
+    #print("SNR:", SNR)
     #print("PSD:", psd)
     print("Vrms:", Vrms)
     print("df =", df)
@@ -343,6 +351,7 @@ def plot_results(time_ms, voltage,
 
     plt.tight_layout()
     plt.show()
+
 
 def close_scope():
 
@@ -415,6 +424,7 @@ def main():
     close_scope()
 
     print(f"Actual Sampling Rate = {actual_fs/1e6:.2f} MHz")
+
 
 if __name__ == "__main__":
     main()  
